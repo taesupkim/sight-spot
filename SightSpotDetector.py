@@ -22,6 +22,7 @@ import numpy
 import scipy.ndimage
 from PIL import Image
 import SightSpotUtil
+from TestSegmentation import _visualize_clusters, _visualize_averaging, _visualize_contours
 
 class SightSpotDetector():
 
@@ -32,7 +33,7 @@ class SightSpotDetector():
     _SLIC_ALPHA = 0.25
     _ITERATION_NUMBER = 4
 
-    def __init__(self, image, grain=0.1):
+    def __init__(self, image, grain=0.05):
         """
         Public constructor of SightSpotDetector.
 
@@ -54,7 +55,7 @@ class SightSpotDetector():
         rgb_image = cv2.resize(rgb_image, (0, 0), fx=0.2, fy=0.2)
         # print rgb_image.shape
         org_image = cv2.copyMakeBorder(rgb_image, 100, 100, 100, 100, cv2.BORDER_REFLECT101)
-        rgb_image = cv2.blur(org_image,(32,32))
+        rgb_image = org_image#cv2.blur(org_image,(32,32))
         # print rgb_image.shape
         self._org_image = org_image
         self._rgb_image = rgb_image
@@ -63,6 +64,7 @@ class SightSpotDetector():
         self._fusion_map = None
         self._raw_heatmap = None
         self._precise_heatmap = None
+        self._segmentation_map = None
 
         (width, height) = self._rgb_image.shape[1], self._rgb_image.shape[0]
         area = float(width * height)
@@ -92,8 +94,12 @@ class SightSpotDetector():
                 cell_size = self._cell_size
                 alpha = self._SLIC_ALPHA
                 iterations = self._ITERATION_NUMBER
-                segmentation_map = SightSpotUtil.eval_slic_map(orgb_image, cell_size, alpha, iterations)
-                self._fusion_map = SightSpotUtil.combine_saliency_and_segmentation(saliency_map, segmentation_map)
+                self._segmentation_map = SightSpotUtil.eval_slic_map(orgb_image, cell_size, alpha, iterations)
+                self._fusion_map = SightSpotUtil.combine_saliency_and_segmentation(saliency_map, self._segmentation_map)
+
+                # _visualize_clusters(self._segmentation_map).show('Clusters in random colors')
+                # _visualize_contours(self._rgb_image, self._segmentation_map, (255, 255, 0)).show('Cluster contours')
+                # _visualize_averaging(self._rgb_image, self._segmentation_map).show('Averaging')
             return self._fusion_map
         raise Exception('Unknown argument value type = "' + str(type) + '"')
 

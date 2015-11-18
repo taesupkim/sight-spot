@@ -413,13 +413,17 @@ def combine_saliency_and_segmentation(saliency_map, segmentation_map):
 ################################################################################
 
 def _estimate_threshold(saliency_map):
-    return 1.2 * numpy.mean(saliency_map)
+    return 1.5 * numpy.mean(saliency_map)
 
 def _get_salient_mask(saliency_map, value='auto'):
     if value == 'auto':
         value = _estimate_threshold(saliency_map)
     assert(0.0 < value)
-    return (saliency_map >= value)
+    binary_img = (saliency_map >= value)
+    while binary_img.nonzero()[0].size==0:
+        value *= 0.5
+        binary_img = (saliency_map >= value)
+    return binary_img
 
 def threshold(saliency_map, value='auto'):
     """
@@ -465,6 +469,23 @@ def remove_background(rgb_image, saliency_map, value='auto'):
     result = result[100:-100, 100:-100,:]
     idx=idx[100:-100, 100:-100]
 
+    background_size = 0
+    foreground_size = 0
+    clusters_idx, num_clusters = scipy.ndimage.label(idx)
+    for c in xrange(num_clusters):
+        cluster_pos = numpy.argwhere(clusters_idx==c)
+        cluster_size = cluster_pos.shape[0]
+        if background_size<cluster_size:
+            background_size=cluster_size
+        elif foreground_size<cluster_size:
+            foreground_size=cluster_size
+
+
+    for c in xrange(num_clusters):
+        cluster_pos = numpy.argwhere(clusters_idx==c)
+        cluster_size = cluster_pos.shape[0]
+        if cluster_size<foreground_size*0.5:
+            idx[clusters_idx==c]=False
 
     idx=idx.nonzero()
     row_min =  min(idx[0])-50
