@@ -460,8 +460,41 @@ def remove_background(rgb_image, saliency_map, value='auto'):
         List of thresholded maps.
     """
     idx = _get_salient_mask(saliency_map, value)
+
     result = rgb_image.copy()
-    result[~idx] = [0, 0, 0]
+    result = result[100:-100, 100:-100,:]
+    idx=idx[100:-100, 100:-100]
+
+
+    idx=idx.nonzero()
+    row_min =  min(idx[0])-50
+    if row_min<0:
+        row_min=0
+    row_max =  max(idx[0])+50
+    if row_max>=result.shape[0]:
+        row_max = result.shape[0]-1
+    col_min =  min(idx[1])-50
+    if col_min<0:
+        col_min=0
+    col_max =  max(idx[1])+50
+    if col_max>=result.shape[1]:
+        col_max = result.shape[1]-1
+
+
+    result = result[row_min:row_max, col_min:col_max,:]
+
+    width, height = result.shape[1], result.shape[0]
+
+    import cv2
+    if width>height:
+        dst_height = 256.
+        dst_width  = (dst_height/height)*width
+        result = cv2.resize(result, (int(dst_width),int(dst_height)))
+    else:
+        dst_width = 256.
+        dst_height  = (dst_width/width)*height
+        result = cv2.resize(result, (int(dst_width),int(dst_height)))
+
     return result.astype('uint8')
 
 def detect_bounds(saliency_map, value='auto', type='rect'):

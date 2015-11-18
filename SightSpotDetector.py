@@ -16,6 +16,7 @@ __copyright__ = "Copyright (c) 2014"
 __license__   = "Apache 2.0"
 __version__   = "1.0"
 
+import cv2
 import math
 import numpy
 import scipy.ndimage
@@ -50,6 +51,10 @@ class SightSpotDetector():
         if not isinstance(rgb_image, numpy.ndarray):
             raise Exception('Argument "image" should be either PIL.Image, numpy.ndarray or string filename!')
 
+        rgb_image = cv2.resize(rgb_image, (0, 0), fx=0.3, fy=0.3)
+        # print rgb_image.shape
+        rgb_image = cv2.copyMakeBorder(rgb_image, 100, 100, 100, 100, cv2.BORDER_REFLECT101)
+        # print rgb_image.shape
         self._rgb_image = rgb_image
         self._orgb_image = None
         self._saliency_map = None

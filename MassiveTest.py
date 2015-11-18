@@ -13,20 +13,18 @@ import os
 from PIL import Image
 import SightSpotDetector
 
-INPUT_FOLDER = r'/home/tinnulion/PycharmProjects/sight-spot/set/source'
-OUTPUT_FOLDER = r'/home/tinnulion/PycharmProjects/sight-spot/set/sight-spot'
+INPUT_FOLDER = '/Users/KimTS/Workspace/MILA/kaggle_whale/data/imgs/'
+OUTPUT_FOLDER = './set/whales/'
+# INPUT_FOLDER = '/data/lisatmp4/whales/data/imgs/'
+# OUTPUT_FOLDER = '/data/lisatmp4/taesup/whales'
 
 for root, dirs, files in os.walk(INPUT_FOLDER, topdown=False):
     for name in files:
         path = os.path.join(root, name)
+        if path.find('.jpg')==-1:
+            continue
         print 'Processing:', path
         detector = SightSpotDetector.SightSpotDetector(path)
-
-        saliency_map = Image.fromarray(255.0 * detector.get_saliency_map(type='raw')).convert('RGB')
-        saliency_map.save(OUTPUT_FOLDER + '/raw_saliency_map.' + name)
-
-        #heatmap = detector.get_heatmap(source='raw')
-        #heatmap.save(OUTPUT_FOLDER + '/raw_heatmap.' + name)
 
         foreground = detector.get_foreground(source='precise')
         foreground.save(OUTPUT_FOLDER + '/foreground.' + name)
