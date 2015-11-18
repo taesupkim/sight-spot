@@ -13,10 +13,10 @@ import os
 from PIL import Image
 import SightSpotDetector
 
-INPUT_FOLDER = '/Users/KimTS/Workspace/MILA/kaggle_whale/data/imgs/'
-OUTPUT_FOLDER = './set/whales/'
-# INPUT_FOLDER = '/data/lisatmp4/whales/data/imgs/'
-# OUTPUT_FOLDER = '/data/lisatmp4/taesup/whales'
+# INPUT_FOLDER = '/Users/KimTS/Workspace/MILA/kaggle_whale/data/imgs/'
+# OUTPUT_FOLDER = './set/whales/'
+INPUT_FOLDER = '/data/lisatmp4/whales/data/imgs/'
+OUTPUT_FOLDER = '/data/lisatmp4/taesup/whales'
 
 for root, dirs, files in os.walk(INPUT_FOLDER, topdown=False):
     for name in files:
