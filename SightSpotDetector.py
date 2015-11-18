@@ -51,10 +51,12 @@ class SightSpotDetector():
         if not isinstance(rgb_image, numpy.ndarray):
             raise Exception('Argument "image" should be either PIL.Image, numpy.ndarray or string filename!')
 
-        rgb_image = cv2.resize(rgb_image, (0, 0), fx=0.3, fy=0.3)
+        rgb_image = cv2.resize(rgb_image, (0, 0), fx=0.2, fy=0.2)
         # print rgb_image.shape
-        rgb_image = cv2.copyMakeBorder(rgb_image, 100, 100, 100, 100, cv2.BORDER_REFLECT101)
+        org_image = cv2.copyMakeBorder(rgb_image, 100, 100, 100, 100, cv2.BORDER_REFLECT101)
+        rgb_image = cv2.blur(org_image,(32,32))
         # print rgb_image.shape
+        self._org_image = org_image
         self._rgb_image = rgb_image
         self._orgb_image = None
         self._saliency_map = None
@@ -173,7 +175,7 @@ class SightSpotDetector():
             Image without background pixels.
         """
         saliency_map = self._get_saliency_map(source)
-        return Image.fromarray(SightSpotUtil.remove_background(self._rgb_image, saliency_map, value))
+        return Image.fromarray(SightSpotUtil.remove_background(self._org_image, saliency_map, value))
 
     def cut_objects(self, source, value='auto'):
         """

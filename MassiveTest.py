@@ -27,7 +27,7 @@ for root, dirs, files in os.walk(INPUT_FOLDER, topdown=False):
         detector = SightSpotDetector.SightSpotDetector(path)
 
         foreground = detector.get_foreground(source='precise')
-        foreground.save(OUTPUT_FOLDER + '/foreground.' + name)
+        foreground.save(OUTPUT_FOLDER + '/cropped_' + name)
 
 
 
