@@ -413,7 +413,7 @@ def combine_saliency_and_segmentation(saliency_map, segmentation_map):
 ################################################################################
 
 def _estimate_threshold(saliency_map):
-    return 1.5 * numpy.mean(saliency_map)
+    return 1.0 * numpy.mean(saliency_map)
 
 def _get_salient_mask(saliency_map, value='auto'):
     if value == 'auto':
@@ -421,7 +421,7 @@ def _get_salient_mask(saliency_map, value='auto'):
     assert(0.0 < value)
     binary_img = (saliency_map >= value)
     while binary_img.nonzero()[0].size==0:
-        value *= 0.5
+        value *= 0.8
         binary_img = (saliency_map >= value)
     return binary_img
 
@@ -463,11 +463,12 @@ def remove_background(rgb_image, saliency_map, value='auto'):
     out : ndarray
         List of thresholded maps.
     """
-    idx = _get_salient_mask(saliency_map, value)
-
     result = rgb_image.copy()
     result = result[100:-100, 100:-100,:]
-    idx=idx[100:-100, 100:-100]
+    saliency_map=saliency_map[100:-100, 100:-100]
+
+    idx = _get_salient_mask(saliency_map, value)
+
 
     background_size = 0
     foreground_size = 0
@@ -479,7 +480,6 @@ def remove_background(rgb_image, saliency_map, value='auto'):
             background_size=cluster_size
         elif foreground_size<cluster_size:
             foreground_size=cluster_size
-
 
     for c in xrange(num_clusters):
         cluster_pos = numpy.argwhere(clusters_idx==c)
