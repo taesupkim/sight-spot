@@ -413,13 +413,14 @@ def combine_saliency_and_segmentation(saliency_map, segmentation_map):
 ################################################################################
 
 def _estimate_threshold(saliency_map):
-    return 1.0 * numpy.mean(saliency_map)
+    return 1.2 * numpy.mean(saliency_map)
 
 def _get_salient_mask(saliency_map, value='auto'):
     if value == 'auto':
         value = _estimate_threshold(saliency_map)
     assert(0.0 < value)
     binary_img = (saliency_map >= value)
+
     while binary_img.nonzero()[0].size==0:
         value *= 0.8
         binary_img = (saliency_map >= value)
@@ -445,7 +446,7 @@ def threshold(saliency_map, value='auto'):
     threshold_map = idx.astype('int32')
     return threshold_map
 
-def remove_background(rgb_image, saliency_map, value='auto'):
+def remove_background(rgb_image, saliency_map, value='auto', ratio=0.1):
     """
     Substitute background pixels by black color.
 
@@ -463,17 +464,14 @@ def remove_background(rgb_image, saliency_map, value='auto'):
     out : ndarray
         List of thresholded maps.
     """
-    result = rgb_image.copy()
-    result = result[100:-100, 100:-100,:]
-    saliency_map=saliency_map[100:-100, 100:-100]
-
+    saliency_map=saliency_map[int(saliency_map.shape[0]*(0.1/1.2)):-int(saliency_map.shape[0]*(0.1/1.2)), int(saliency_map.shape[1]*(0.1/1.2)):-int(saliency_map.shape[1]*(0.1/1.2))]
     idx = _get_salient_mask(saliency_map, value)
 
 
     background_size = 0
     foreground_size = 0
     clusters_idx, num_clusters = scipy.ndimage.label(idx)
-    for c in xrange(num_clusters):
+    for c in xrange(num_clusters+1):
         cluster_pos = numpy.argwhere(clusters_idx==c)
         cluster_size = cluster_pos.shape[0]
         if background_size<cluster_size:
@@ -481,29 +479,43 @@ def remove_background(rgb_image, saliency_map, value='auto'):
         elif foreground_size<cluster_size:
             foreground_size=cluster_size
 
-    for c in xrange(num_clusters):
+    for c in xrange(num_clusters+1):
         cluster_pos = numpy.argwhere(clusters_idx==c)
         cluster_size = cluster_pos.shape[0]
-        if cluster_size<foreground_size*0.5:
+        if cluster_size<foreground_size*0.8:
             idx[clusters_idx==c]=False
 
     idx=idx.nonzero()
-    row_min =  min(idx[0])-50
+    row_min =  min(idx[0])
+    row_max =  max(idx[0])
+    col_min =  min(idx[1])
+    col_max =  max(idx[1])
+
+    row_size = row_max-row_min
+    col_size = col_max-col_min
+
+    row_margin = int(row_size*0.1)
+    col_margin = int(col_size*0.1)
+
+    row_min = row_min - row_margin
     if row_min<0:
         row_min=0
-    row_max =  max(idx[0])+50
-    if row_max>=result.shape[0]:
-        row_max = result.shape[0]-1
-    col_min =  min(idx[1])-50
+
+    row_max = row_max + row_margin
+    if row_max>=saliency_map.shape[0]:
+        row_max = saliency_map.shape[0]-1
+
+    col_min = col_min - col_margin
     if col_min<0:
         col_min=0
-    col_max =  max(idx[1])+50
-    if col_max>=result.shape[1]:
-        col_max = result.shape[1]-1
 
+    col_max = col_max + col_margin
+    if col_max>=saliency_map.shape[1]:
+        col_max = saliency_map.shape[1]-1
 
-    result = result[row_min:row_max, col_min:col_max,:]
-
+    # result = result[row_min:row_max, col_min:col_max,:]
+    result = rgb_image.copy()
+    result = result[int(1./ratio*row_min):int(1./ratio*row_max), int(1./ratio*col_min):int(1./ratio*col_max),:]
     width, height = result.shape[1], result.shape[0]
 
     import cv2

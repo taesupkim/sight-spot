@@ -28,6 +28,8 @@ for root, dirs, files in os.walk(INPUT_FOLDER, topdown=False):
 
         foreground = detector.get_foreground(source='precise')
         foreground.save(OUTPUT_FOLDER + '/cropped_' + name)
+        # foreground.show('Pixel-precise saliency image')
+        # raw_input('lets see')
 
 
 
